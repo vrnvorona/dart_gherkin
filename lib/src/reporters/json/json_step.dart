@@ -2,6 +2,7 @@ import 'json_embedding.dart';
 import 'json_row.dart';
 import '../messages.dart';
 import '../../gherkin/steps/step_run_result.dart';
+import '../../gherkin/exceptions/step_not_defined_error.dart';
 
 class JsonStep {
   String keyword;
@@ -63,13 +64,18 @@ class JsonStep {
   }
 
   void onException(Exception exception, StackTrace stackTrace) {
+    /// Меняем статус для отчета если шаг не найден
+    if (exception is GherkinStepNotDefinedException) {
+      status = 'undefined';
+    }
     _trackError(exception.toString(), stackTrace.toString());
   }
 
   void _trackError(String error, [String stacktrace]) {
     if (this.error == null && (error?.length ?? 0) > 0) {
+      /// Добавляем время в ошибку чтобы было проще дебажить
       this.error =
-          '$error${stacktrace != null ? '\n\n$stacktrace' : ''}'.trim();
+          '${DateTime.now()}\n$error${stacktrace != null ? '\n\n$stacktrace' : ''}'.trim();
     }
   }
 
